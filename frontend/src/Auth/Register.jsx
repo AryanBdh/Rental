@@ -173,10 +173,10 @@ const Register = () => {
 
       // Fetch user profile with the token
       const { data: profileData } = await apiClient.get("/api/user/profile")
-      console.log("User profile data:", userProfile)
+      console.log("User profile data:", profileData)
 
       // Save user profile to localStorage
-      localStorage.setItem("user", JSON.stringify(userProfile))
+      localStorage.setItem("user", JSON.stringify(profileData))
 
       toast.success("Registration successful! Welcome to AnyRent.", {
         id: "register-success",
