@@ -8,8 +8,9 @@ import { Link } from "react-router-dom"
 import Button from "../components/ui/Button"
 import toast from "react-hot-toast"
 import { MapPin, Calendar, Tag, Star, ChevronLeft, ChevronRight, Heart, Share2, Flag } from "lucide-react"
+import API_BASE_URL from "../config/api"
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000"
+const API_BASE = API_BASE_URL
 
 const calculateDaysBetween = (startDate, endDate) => {
   if (!startDate || !endDate) return 0

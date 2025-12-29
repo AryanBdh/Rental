@@ -6,6 +6,7 @@ import { Eye, EyeOff, Mail, Lock, User, Check, AlertCircle, CheckCircle } from "
 import Button from "../components/ui/Button"
 import Input from "../components/ui/Input"
 import toast from "react-hot-toast"
+import API_BASE_URL from "../config/api"
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -155,7 +156,7 @@ const Register = () => {
         password: "********", // Don't log actual password
       })
 
-      const res = await fetch("http://localhost:5000/api/register", {
+      const res = await fetch(`${API_BASE_URL}/api/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -192,7 +193,7 @@ const Register = () => {
       localStorage.setItem("token", data.token)
 
       // Fetch user profile with the token
-      const profileRes = await fetch("http://localhost:5000/api/user/profile", {
+      const profileRes = await fetch(`${API_BASE_URL}/api/user/profile`, {
         headers: {
           Authorization: `Bearer ${data.token}`,
         },

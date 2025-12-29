@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom"
 import Button from "../components/ui/Button"
 import Input from "../components/ui/Input"
 import toast from "react-hot-toast"
+import API_BASE_URL from "../config/api"
 
 export default function ResetPassword() {
   const [token, setToken] = useState("")
@@ -36,7 +37,7 @@ export default function ResetPassword() {
 
     try {
       setLoading(true)
-      const res = await fetch("http://localhost:5000/api/auth/reset-password", {
+      const res = await fetch(`${API_BASE_URL}/api/auth/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token, password }),

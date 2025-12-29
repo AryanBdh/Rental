@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import toast from 'react-hot-toast';
+import API_BASE_URL from '../config/api';
 
 const ReviewForm = ({ itemId, onSaved }) => {
   const [rating, setRating] = useState(5);
@@ -11,7 +12,7 @@ const ReviewForm = ({ itemId, onSaved }) => {
     setLoading(true);
     const token = localStorage.getItem('token');
     try {
-      const res = await fetch('http://localhost:5000/api/reviews', {
+      const res = await fetch(`${API_BASE_URL}/api/reviews`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

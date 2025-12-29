@@ -6,8 +6,9 @@ import Button from "../components/ui/Button"
 import Input from "../components/ui/Input"
 import toast from "react-hot-toast"
 import { MapPin, Camera } from "lucide-react"
+import API_BASE_URL from "../config/api"
 
-const API_BASE = import.meta.env.VITE_API_URL || ""
+const API_BASE = API_BASE_URL
 
 export default function EditItem() {
   const { id } = useParams()
