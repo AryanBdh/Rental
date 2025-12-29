@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import toast from 'react-hot-toast';
-import API_BASE_URL from '../config/api';
+import { apiClient } from '../config/api';
 
 const ReviewForm = ({ itemId, onSaved }) => {
   const [rating, setRating] = useState(5);
@@ -10,18 +10,9 @@ const ReviewForm = ({ itemId, onSaved }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const token = localStorage.getItem('token');
     try {
-      const res = await fetch(`${API_BASE_URL}/api/reviews`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ itemId, rating, description }),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.status) throw new Error(data.message || 'Failed to save review');
+      const { data } = await apiClient.post('/api/reviews', { itemId, rating, description });
+      if (!data.status) throw new Error(data.message || 'Failed to save review');
       toast.success('Review submitted');
       setRating(5);
       setDescription('');

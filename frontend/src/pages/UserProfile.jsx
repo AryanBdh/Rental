@@ -9,6 +9,7 @@ import Listings from "../components/profile/Listings"
 import BookingsPanel from "../components/profile/Bookings"
 import EarningsPanel from "../components/profile/Earnings"
 import toast from "react-hot-toast"
+import { apiClient } from "../config/api"
 
 const UserProfile = ({ defaultTab }) => {
   const [activeTab, setActiveTab] = useState(defaultTab || "overview")
@@ -95,9 +96,7 @@ const UserProfile = ({ defaultTab }) => {
           setLoading(false)
           return
         }
-        const res = await fetch("/api/user/profile", { headers: { Authorization: `Bearer ${token}` } })
-        if (!res.ok) throw new Error("Failed to fetch profile")
-        const userData = await res.json()
+        const { data: userData } = await apiClient.get("/api/user/profile")
         setProfileData({
           name: userData.name || "",
           email: userData.email || "",
@@ -125,13 +124,18 @@ const UserProfile = ({ defaultTab }) => {
         const uid = stored._id || stored.id || null
         if (!uid) return
         setItemsLoading(true)
-        let res = await fetch(`/api/items/user/${uid}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
-        if (!res.ok)
-          res = await fetch(`/api/items?owner=${uid}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
-        if (res.ok) {
-          const data = await res.json()
+        try {
+          const { data } = await apiClient.get(`/api/items/user/${uid}`)
           setOwnerItems(Array.isArray(data) ? data : data.items || [])
-        } else setOwnerItems([])
+        } catch (err) {
+          // Try fallback endpoint
+          try {
+            const { data } = await apiClient.get(`/api/items?owner=${uid}`)
+            setOwnerItems(Array.isArray(data) ? data : data.items || [])
+          } catch (err2) {
+            setOwnerItems([])
+          }
+        }
       } catch (err) {
         console.error("Owner items fetch error", err)
         setOwnerItems([])
@@ -153,15 +157,18 @@ const UserProfile = ({ defaultTab }) => {
         const uid = stored._id || stored.id || null
         if (!uid) return
         setBookingsLoading(true)
-        let res = await fetch(`/api/bookings/user/${uid}`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        })
-        if (!res.ok)
-          res = await fetch(`/api/bookings?user=${uid}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
-        if (res.ok) {
-          const data = await res.json()
+        try {
+          const { data } = await apiClient.get(`/api/bookings/user/${uid}`)
           setBookings(Array.isArray(data) ? data : data.bookings || [])
-        } else setBookings([])
+        } catch (err) {
+          // Try fallback endpoint
+          try {
+            const { data } = await apiClient.get(`/api/bookings?user=${uid}`)
+            setBookings(Array.isArray(data) ? data : data.bookings || [])
+          } catch (err2) {
+            setBookings([])
+          }
+        }
       } catch (err) {
         console.error("Fetch bookings error", err)
         setBookings([])
@@ -180,17 +187,12 @@ const UserProfile = ({ defaultTab }) => {
         const uid = stored._id || stored.id || null
         if (!uid) return
         setEarningsLoading(true)
-        const res = await fetch(`/api/earnings/user/${uid}`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        const { data } = await apiClient.get(`/api/earnings/user/${uid}`)
+        setEarnings({
+          total: data.total || 0,
+          pending: data.pending || 0,
+          transactions: Array.isArray(data.transactions) ? data.transactions : data.transactions || [],
         })
-        if (res.ok) {
-          const data = await res.json()
-          setEarnings({
-            total: data.total || 0,
-            pending: data.pending || 0,
-            transactions: Array.isArray(data.transactions) ? data.transactions : data.transactions || [],
-          })
-        } else setEarnings({ total: 0, pending: 0, transactions: [] })
       } catch (err) {
         console.error("Fetch earnings error", err)
         setEarnings({ total: 0, pending: 0, transactions: [] })
@@ -215,13 +217,7 @@ const UserProfile = ({ defaultTab }) => {
         phone: profileData.phone,
         address: profileData.address,
       }
-      const res = await fetch(`/api/user/update/${u._id}`, {
-        method: "PUT",
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify(updatePayload),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.message || "Update failed")
+      const { data } = await apiClient.put(`/api/user/update/${u._id}`, updatePayload)
       localStorage.setItem("user", JSON.stringify(data.user))
       setIsEditing(false)
       toast.success("Profile updated successfully")
@@ -241,13 +237,7 @@ const UserProfile = ({ defaultTab }) => {
         return
       }
       const payload = { address: editingAddress }
-      const res = await fetch(`/api/user/update/${u._id}`, {
-        method: "PUT",
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.message || "Failed to save address")
+      const { data } = await apiClient.put(`/api/user/update/${u._id}`, payload)
       // update local state and localStorage
       setProfileData({ ...profileData, address: data.user.address || editingAddress })
       localStorage.setItem("user", JSON.stringify(data.user))

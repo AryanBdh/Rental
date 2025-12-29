@@ -5,7 +5,7 @@ import { Link, useNavigate } from "react-router-dom"
 import Button from "../../components/ui/Button"
 import toast from "react-hot-toast"
 import { Plus, Edit2, Eye, ImageIcon, MapPin, Tag } from "lucide-react"
-import API_BASE_URL from "../../config/api"
+import { apiClient, API_BASE_URL } from "../../config/api"
 
 const API_BASE = API_BASE_URL
 

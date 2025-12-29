@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import toast from "react-hot-toast"
 import { Edit2, Trash2 } from "lucide-react"
+import { apiClient } from '../../../config/api'
 
 export default function CategoryPage() {
   const [categories, setCategories] = useState([])
@@ -23,17 +24,7 @@ export default function CategoryPage() {
   const fetchCategories = async () => {
     setLoadingCategories(true)
     try {
-      const res = await fetch(`/api/categories`)
-      const text = await res.text()
-      let data
-      try {
-        data = JSON.parse(text)
-      } catch (_) {
-        // if backend returned HTML (e.g. 404 page), show message
-        toast.error("Unexpected response from server when loading categories")
-        setCategories([])
-        return
-      }
+      const { data } = await apiClient.get(`/api/categories`)
       // allow either array or { categories: [] }
       const list = Array.isArray(data) ? data : data.categories || []
       setCategories(list)
@@ -58,41 +49,20 @@ export default function CategoryPage() {
     }
     setLoading(true)
     try {
-      const token = getToken()
       // If editing, send PUT to update existing category
-      const method = editingId ? "PUT" : "POST"
-      const url = editingId ? `/api/categories/${editingId}` : `/api/categories`
-      const res = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
+      if (editingId) {
+        await apiClient.put(`/api/categories/${editingId}`, {
           name: name.trim(),
           description: description.trim(),
-        }),
-      })
-
-      const text = await res.text()
-      let data
-      try {
-        data = JSON.parse(text)
-      } catch (_) {
-        data = { message: text }
+        })
+        toast.success("Category updated")
+      } else {
+        await apiClient.post(`/api/categories`, {
+          name: name.trim(),
+          description: description.trim(),
+        })
+        toast.success("Category created")
       }
-
-      // Some middleware returns { status: false, message: 'Token not found' } with 200
-      if (data && data.status === false) {
-        toast.error(data.message || "Authentication error")
-        return
-      }
-
-      if (!res.ok) {
-        toast.error(data.message || (editingId ? "Failed to update category" : "Failed to create category"))
-        return
-      }
-      toast.success(editingId ? "Category updated" : "Category created")
       // refresh list
       await fetchCategories()
       setName("")
@@ -142,22 +112,7 @@ export default function CategoryPage() {
               className="bg-red-600 text-white px-3 py-1 rounded-md text-sm"
               onClick={async () => {
                 try {
-                  const res = await fetch(`/api/categories/${id}`, {
-                    method: "DELETE",
-                    headers: { Authorization: `Bearer ${token}` },
-                  })
-                  const text = await res.text()
-                  let data
-                  try {
-                    data = JSON.parse(text)
-                  } catch (_) {
-                    data = { message: text }
-                  }
-                  if (!res.ok) {
-                    toast.error(data.message || `Delete failed (status ${res.status})`)
-                    console.error("Delete category failed", res.status, data)
-                    return
-                  }
+                  await apiClient.delete(`/api/categories/${id}`)
                   setCategories((s) => s.filter((x) => (x._id || x.id) !== id))
                   toast.success("Category deleted")
                 } catch (err) {

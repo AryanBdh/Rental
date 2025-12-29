@@ -47,13 +47,7 @@ export default function Bookings({ bookings = [], bookingsLoading, formatDate, g
 
   const handleAccept = async (id) => {
     try {
-      const token = localStorage.getItem("token")
-      const res = await fetch(`/api/bookings/${id}/accept`, {
-        method: "PATCH",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.message || "Accept failed")
+      await apiClient.patch(`/api/bookings/${id}/accept`)
       setList((prev) => prev.map((b) => (b._id === id ? { ...b, status: "confirmed" } : b)))
       toast.success("Booking accepted")
     } catch (err) {
@@ -64,13 +58,7 @@ export default function Bookings({ bookings = [], bookingsLoading, formatDate, g
 
   const handleReject = async (id) => {
     try {
-      const token = localStorage.getItem("token")
-      const res = await fetch(`/api/bookings/${id}/reject`, {
-        method: "PATCH",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.message || "Reject failed")
+      await apiClient.patch(`/api/bookings/${id}/reject`)
       setList((prev) => prev.map((b) => (b._id === id ? { ...b, status: "cancelled" } : b)))
       toast.success("Booking rejected")
     } catch (err) {
@@ -81,13 +69,7 @@ export default function Bookings({ bookings = [], bookingsLoading, formatDate, g
 
   const handleCancel = async (id) => {
     try {
-      const token = localStorage.getItem("token")
-      const res = await fetch(`/api/bookings/${id}/cancel`, {
-        method: "PATCH",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.message || "Cancel failed")
+      await apiClient.patch(`/api/bookings/${id}/cancel`)
       setList((prev) => prev.map((b) => (b._id === id ? { ...b, status: "cancelled" } : b)))
       toast.success("Booking cancelled")
     } catch (err) {

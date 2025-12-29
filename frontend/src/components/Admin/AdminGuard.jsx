@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import { apiClient } from '../../config/api'
 
 export default function AdminGuard({ children }) {
   const [allowed, setAllowed] = useState(null) // null=loading, false=denied, true=allowed
@@ -15,12 +16,7 @@ export default function AdminGuard({ children }) {
           if (mounted) setAllowed(false)
           return
         }
-        const res = await fetch('/api/user/verify-admin', {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        const text = await res.text()
-        let data
-        try { data = JSON.parse(text) } catch (_) { data = { isAdmin: false } }
+        const { data } = await apiClient.get('/api/user/verify-admin')
         if (mounted) setAllowed(Boolean(data.isAdmin))
       } catch (err) {
         console.error('Admin verify failed', err)

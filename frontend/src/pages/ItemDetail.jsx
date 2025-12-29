@@ -8,7 +8,7 @@ import { Link } from "react-router-dom"
 import Button from "../components/ui/Button"
 import toast from "react-hot-toast"
 import { MapPin, Calendar, Tag, Star, ChevronLeft, ChevronRight, Heart, Share2, Flag } from "lucide-react"
-import API_BASE_URL from "../config/api"
+import { apiClient, API_BASE_URL } from "../config/api"
 
 const API_BASE = API_BASE_URL
 
@@ -62,9 +62,7 @@ export default function ItemDetail() {
     const fetchItem = async () => {
       try {
         setLoading(true)
-        const res = await fetch(`${API_BASE}/api/items/${id}`)
-        if (!res.ok) throw new Error("Failed to fetch item")
-        const data = await res.json()
+        const { data } = await apiClient.get(`/api/items/${id}`)
         setItem(data)
       } catch (err) {
         console.error("Error fetching item:", err)
@@ -77,9 +75,7 @@ export default function ItemDetail() {
     // fetch bookings for this item to mark blocked dates
     const fetchBookingsForItem = async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/bookings/item/${id}`)
-        if (!res.ok) return
-        const bookings = await res.json()
+        const { data: bookings } = await apiClient.get(`/api/bookings/item/${id}`)
         const blocked = new Set()
         bookings.forEach((b) => {
           if (!b.startDate || !b.endDate) return
@@ -106,9 +102,7 @@ export default function ItemDetail() {
     try {
       const itemId = id || (item && (item._id || item.id))
       if (!itemId) return
-      const res = await fetch(`${API_BASE}/api/reviews/item/${itemId}`)
-      if (!res.ok) return
-      const data = await res.json()
+      const { data } = await apiClient.get(`/api/reviews/item/${itemId}`)
       if (data && data.status && Array.isArray(data.reviews)) {
         setReviews(data.reviews)
       } else if (Array.isArray(data)) {
@@ -611,27 +605,7 @@ export default function ItemDetail() {
                               endDate: endDate.toISOString(),
                             }
 
-                            const res = await fetch(`${API_BASE}/api/bookings`, {
-                              method: 'POST',
-                              headers: {
-                                'Content-Type': 'application/json',
-                                Authorization: `Bearer ${token}`,
-                              },
-                              body: JSON.stringify(payload),
-                            })
-
-                            let data
-                            try {
-                              data = await res.json()
-                            } catch (e) {
-                              const text = await res.text()
-                              data = { status: false, message: text || 'Unknown response' }
-                            }
-
-                            if (!res.ok) {
-                              toast.error(data?.message || 'Failed to send booking request')
-                              return
-                            }
+                            const { data } = await apiClient.post('/api/bookings', payload)
 
                             // booking created successfully — auto-confirmed (no payment)
                             const booking = data.booking || data

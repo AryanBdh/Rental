@@ -13,7 +13,7 @@ import {
 import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
 import toast from "react-hot-toast";
-import API_BASE_URL from "../config/api";
+import { apiClient, API_BASE_URL } from "../config/api";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -93,32 +93,10 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
+      const { data } = await apiClient.post("/api/login", {
+        email: formData.email,
+        password: formData.password,
       });
-
-      // Try to parse JSON (may throw if response is not JSON)
-      let data = {};
-      try {
-        data = await res.json();
-      } catch (err) {
-        throw new Error(`Unexpected response from server: ${res.status} ${res.statusText}`);
-      }
-
-      if (!res.ok) {
-        const message = data?.message || data?.error || `Login failed (${res.status})`;
-        // Map field errors if provided
-        if (data?.emailError) setErrors({ email: data.emailError });
-        if (data?.passwordError) setErrors({ password: data.passwordError });
-        throw new Error(message);
-      }
 
       // Check for token in successful response
       if (!data.token) {
@@ -129,13 +107,7 @@ const Login = () => {
       localStorage.setItem("token", data.token);
 
       // Fetch user profile with the token
-      const profileRes = await fetch("http://localhost:5000/api/user/profile", {
-        headers: {
-          Authorization: `Bearer ${data.token}`,
-        },
-      });
-
-      const userProfile = await profileRes.json();
+      const { data: userProfile } = await apiClient.get("/api/user/profile");
 
       // Save user profile to localStorage
       localStorage.setItem("user", JSON.stringify(userProfile));

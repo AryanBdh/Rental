@@ -5,6 +5,7 @@ import toast from "react-hot-toast"
 import StatsCard from "./StatsCard"
 import UsersTable from "./UsersTable"
 import ItemsList from "./ItemsList"
+import { apiClient } from '../../config/api'
 
 export default function AdminHome() {
   const [totalUsers, setTotalUsers] = useState(null)
@@ -19,20 +20,7 @@ export default function AdminHome() {
 
   const fetchTotalUsers = async () => {
     try {
-      const token = getToken()
-      const res = await fetch("/api/user", {
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      })
-      const text = await res.text()
-      let data
-      try {
-        data = JSON.parse(text)
-      } catch (_) {
-        toast.error("Unexpected response when loading total users")
-        return
-      }
+      const { data } = await apiClient.get("/api/user")
 
       const list = Array.isArray(data) ? data : data.users || []
       setTotalUsers(list.length)

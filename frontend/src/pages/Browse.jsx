@@ -5,6 +5,7 @@ import Header from "../components/HeaderComponent"
 import ItemCard from "../components/ItemCard"
 import { Search, GridIcon, ListIcon, Filter } from "lucide-react"
 import { useLocation } from "react-router-dom"
+import { apiClient } from "../config/api"
 
 export default function Browse() {
   const [items, setItems] = useState([])
@@ -78,9 +79,7 @@ export default function Browse() {
         params.append("availability", filters.availability === "available")
 
       const url = `/api/items?${params.toString()}`
-      const res = await fetch(url)
-      if (!res.ok) throw new Error("Failed to fetch")
-      const data = await res.json()
+      const { data } = await apiClient.get(url)
       if (Array.isArray(data)) {
         // filter out items owned by current user
         let user = null

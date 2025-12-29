@@ -18,14 +18,7 @@ export default function ForgotPassword() {
 
     try {
       setLoading(true)
-      const res = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      })
-
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.message || "Failed to request password reset")
+      const { data } = await apiClient.post("/api/auth/forgot-password", { email })
 
       toast.success(data.message || "Password reset link sent to your email")
       // Optionally redirect to a confirmation page

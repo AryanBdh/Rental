@@ -6,7 +6,7 @@ import { Eye, EyeOff, Mail, Lock, User, Check, AlertCircle, CheckCircle } from "
 import Button from "../components/ui/Button"
 import Input from "../components/ui/Input"
 import toast from "react-hot-toast"
-import API_BASE_URL from "../config/api"
+import { apiClient, API_BASE_URL } from "../config/api"
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -156,34 +156,13 @@ const Register = () => {
         password: "********", // Don't log actual password
       })
 
-      const res = await fetch(`${API_BASE_URL}/api/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          password: formData.password,
-          roles: formData.roles,
-        }),
+      const { data } = await apiClient.post("/api/register", {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+        roles: formData.roles,
       })
-
-      console.log("Registration response status:", res.status)
-      const data = await res.json()
-      console.log("Registration response data:", data)
-
-      // Check for specific error fields that your backend returns
-      if (data.emailError) {
-        setErrors({ email: data.emailError })
-        throw new Error(data.emailError)
-      }
-
-      if (data.submitError) {
-        setErrors({ submit: data.submitError })
-        throw new Error(data.submitError)
-      }
 
       if (!data.token) {
         throw new Error("Registration failed. Please try again.")
@@ -193,13 +172,7 @@ const Register = () => {
       localStorage.setItem("token", data.token)
 
       // Fetch user profile with the token
-      const profileRes = await fetch(`${API_BASE_URL}/api/user/profile`, {
-        headers: {
-          Authorization: `Bearer ${data.token}`,
-        },
-      })
-
-      const userProfile = await profileRes.json()
+      const { data: profileData } = await apiClient.get("/api/user/profile")
       console.log("User profile data:", userProfile)
 
       // Save user profile to localStorage

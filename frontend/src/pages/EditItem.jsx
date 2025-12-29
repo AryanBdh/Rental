@@ -6,7 +6,7 @@ import Button from "../components/ui/Button"
 import Input from "../components/ui/Input"
 import toast from "react-hot-toast"
 import { MapPin, Camera } from "lucide-react"
-import API_BASE_URL from "../config/api"
+import { apiClient, API_BASE_URL } from "../config/api"
 
 const API_BASE = API_BASE_URL
 
@@ -51,9 +51,7 @@ export default function EditItem() {
     let mounted = true
     async function load() {
       try {
-        const res = await fetch(`${API_BASE}/api/items/${id}`)
-        if (!res.ok) throw new Error('Failed to load item')
-        const data = await res.json()
+        const { data } = await apiClient.get(`/api/items/${id}`)
         if (!mounted) return
         setForm({
           name: data.name || "",
@@ -84,9 +82,7 @@ export default function EditItem() {
     let mounted = true
     async function loadCategories() {
       try {
-        const res = await fetch('/api/categories')
-        if (!res.ok) return
-        const data = await res.json()
+        const { data } = await apiClient.get('/api/categories')
         if (mounted && Array.isArray(data)) setCategories(data)
       } catch (err) {
         console.warn('Failed to load categories', err)
@@ -187,30 +183,17 @@ export default function EditItem() {
         for (let f of form.images) {
           const fd = new FormData()
           fd.append('image', f)
-          const res = await fetch(`${API_BASE}/api/items/${id}/upload-image`, {
-            method: 'POST',
-            headers: {
-              ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            },
-            body: fd,
+          await apiClient.post(`/api/items/${id}/upload-image`, fd, {
+            headers: { 'Content-Type': 'multipart/form-data' }
           })
-          if (!res.ok) {
-            const text = await res.text()
-            let errData = {}
-            try { errData = text ? JSON.parse(text) : {} } catch (e) { errData = { message: text } }
-            throw new Error(errData.message || 'Failed to upload image')
-          }
         }
       }
 
       // Fetch current images (may include newly uploaded ones)
       let currentImages = []
       try {
-        const r = await fetch(`${API_BASE}/api/items/${id}`)
-        if (r.ok) {
-          const d = await r.json()
-          currentImages = Array.isArray(d.images) ? d.images : []
-        }
+        const { data: d } = await apiClient.get(`/api/items/${id}`)
+        currentImages = Array.isArray(d.images) ? d.images : []
       } catch (e) {}
 
       // Remove images user marked as removed
@@ -229,19 +212,7 @@ export default function EditItem() {
         images: finalImages,
       }
 
-      const res = await fetch(`${API_BASE}/api/items/${id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify(body),
-      })
-
-      const respText = await res.text()
-      let data
-      try { data = respText ? JSON.parse(respText) : {} } catch (e) { data = { message: respText } }
-      if (!res.ok) throw new Error(data.message || 'Update failed')
+      await apiClient.patch(`/api/items/${id}`, body)
 
       toast.success('Item updated')
       navigate('/profile?refresh=1')

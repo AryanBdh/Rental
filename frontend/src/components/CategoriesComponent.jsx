@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Building2, Tag, ChevronLeft, ChevronRight, Camera, Smartphone, Truck, Home, Hammer, Monitor, BookOpen, ShoppingBag, Bed } from "lucide-react";
-import toast from 'react-hot-toast'
-
+import toast from 'react-hot-toast';
+import { apiClient } from '../config/api';
 export function CategoryCards() {
   const [categories, setCategories] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -14,20 +14,12 @@ export function CategoryCards() {
     let mounted = true
     const fetchCategories = async () => {
       try {
-        const res = await fetch('/api/categories')
-        const text = await res.text()
-        // if server returned HTML (index.html), warn and show toast
-        if (typeof text === 'string' && text.trim().startsWith('<')) {
-          console.warn('Categories endpoint returned HTML — backend may be down or proxy not configured')
-          toast.error('Failed to load categories: backend not available')
-          return
-        }
-        let data
-        try { data = JSON.parse(text) } catch (_) { data = text }
+        const { data } = await apiClient.get('/api/categories')
         if (mounted && Array.isArray(data)) setCategories(data)
         else if (mounted && data && Array.isArray(data.categories)) setCategories(data.categories)
       } catch (e) {
         console.warn('Failed to load categories', e)
+        toast.error('Failed to load categories')
         toast.error('Failed to load categories')
       }
     }

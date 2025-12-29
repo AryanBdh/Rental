@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import toast from "react-hot-toast"
-
+import { apiClient } from '../../config/api'
 export default function ItemsList() {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(false)

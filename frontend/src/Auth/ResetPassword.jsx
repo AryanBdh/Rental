@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom"
 import Button from "../components/ui/Button"
 import Input from "../components/ui/Input"
 import toast from "react-hot-toast"
-import API_BASE_URL from "../config/api"
+import { apiClient } from "../config/api"
 
 export default function ResetPassword() {
   const [token, setToken] = useState("")
@@ -37,14 +37,7 @@ export default function ResetPassword() {
 
     try {
       setLoading(true)
-      const res = await fetch(`${API_BASE_URL}/api/auth/reset-password`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, password }),
-      })
-
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.message || "Failed to reset password")
+      const { data } = await apiClient.post("/api/auth/reset-password", { token, password })
 
       toast.success(data.message || "Password reset successful. You may log in now.")
       setTimeout(() => navigate("/login"), 1200)

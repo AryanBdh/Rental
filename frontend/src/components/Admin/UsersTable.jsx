@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import toast from "react-hot-toast"
-
+import { apiClient } from '../../config/api'
 export default function UsersTable() {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(false)

@@ -6,6 +6,7 @@ import Button from "../components/ui/Button"
 import Input from "../components/ui/Input"
 import toast from "react-hot-toast"
 import { MapPin, Camera } from "lucide-react"
+import { apiClient } from "../config/api"
 
 export default function AddItem() {
   const [form, setForm] = useState({
@@ -75,9 +76,7 @@ export default function AddItem() {
     let mounted = true
     async function loadCategories() {
       try {
-        const res = await fetch("/api/categories")
-        if (!res.ok) return
-        const data = await res.json()
+        const { data } = await apiClient.get("/api/categories")
         if (mounted && Array.isArray(data)) setCategories(data)
       } catch (err) {
         console.warn("Failed to load categories", err)
@@ -89,9 +88,7 @@ export default function AddItem() {
       try {
         const token = localStorage.getItem('token')
         if (!token) return
-        const res = await fetch('/api/user/profile', { headers: { Authorization: `Bearer ${token}` } })
-        if (!res.ok) return
-        const user = await res.json()
+        const { data: user } = await apiClient.get('/api/user/profile')
         const addr = user?.address
         if (addr) {
           const parts = [addr.street, addr.city, addr.district, addr.country].filter(Boolean)
@@ -147,13 +144,12 @@ export default function AddItem() {
         if (form.condition) fd.append("condition", form.condition)
         form.images.forEach((f) => fd.append("images", f))
 
-        res = await fetch("/api/items", {
-          method: "POST",
+        const { data } = await apiClient.post("/api/items", fd, {
           headers: {
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            'Content-Type': 'multipart/form-data',
           },
-          body: fd,
         })
+        res = { ok: true, data }
       } else {
         const body = {
           name: form.name,
@@ -166,27 +162,8 @@ export default function AddItem() {
           location: form.location || undefined,
         }
 
-        res = await fetch("/api/items", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-          body: JSON.stringify(body),
-        })
-      }
-
-      const respText = await res.text()
-      let data
-      try {
-        data = respText ? JSON.parse(respText) : {}
-      } catch (err) {
-        data = { message: respText }
-      }
-
-      if (!res.ok) {
-        const msg = data?.message || `Failed to add item (${res.status})`
-        throw new Error(msg)
+        const { data } = await apiClient.post("/api/items", body)
+        res = { ok: true, data }
       }
 
       toast.success("Item added successfully")
